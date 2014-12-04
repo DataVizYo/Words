@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+
+    <title>Words</title>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  
+  </head>
+
+  <body>
+	<h3>What's that Word?</h3>
+	
+<script>
+ 
+
+d3.csv("regwords100.csv", function(data){
+	console.log(data);
+
+	//javascript filter function 
+	//this example uses byVerb function for filter
+	
+	var verbs = data.filter(byVerb);
+	console.log("all verbs");
+	console.log(verbs);
+
+	//javascript filter function 
+	//this one filters using an anonymous function
+	//we're accessing the "rank" field of the data 
+	verbs = verbs.filter(function(element){
+		return (element.rank < 50);
+	})
+
+
+	console.log("verbs with rank < 50 \n"+JSON.stringify(verbs, null, 2));
+
+});
+
+function byVerb(element) {
+	return element.type == "v";
+}
+
+	 
+
+</script>
+	
+  </body>
+</html>

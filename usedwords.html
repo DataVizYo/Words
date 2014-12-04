@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+
+		<style>
+			.table
+			{
+				display: block;
+			  	font-family: sans-serif;
+			  	font-size: 115%;
+			  	overflow: auto;
+			}
+
+			th
+			{
+				background-color: rgb(112, 196, 105);
+			    color: white;
+			    font-weight: normal;
+			    padding: 5px 10px;
+			    text-align: center;
+			}
+
+			td 
+			{
+			    background-color: rgb(238, 238, 238);
+			    color: rgb(111, 111, 111);
+			    padding: 5px 10px;
+			}
+
+			.chart rect
+			{
+
+
+			}
+
+			
+		</style>
+
+	</head>
+	<body>
+
+		<form id="frm1" onsubmit="return false;">
+			<input type="text" id="userinput" />
+			<input type="submit" onclick="myFunction()" value="Search" />
+		</form>
+
+		<script type="text/javascript" src="d3/d3.min.js"></script>
+
+		<script>
+			/////////////////////////User input//////////////////////////
+			<!-- 
+					/*var defaultText = "Search...";
+					var searchBox = document.getElementById("search");
+
+					searchBox.value = defaultText;
+
+					searchBox.onfocus = function() {
+						if (this.value == defaultText) {//clear text field
+						this.value = '';
+						}			
+					}
+
+					searchBox.onblur = function() {
+						if (this.value == "") {//restore default text
+							this.value = defaultText;
+						}
+					}*/
+				-->
+
+			//var userInput = document.getElementById("search").value;
+			var userInput = "";
+			function myFunction() {
+						/*var y = document.getElementById("form");
+						userInput  = y.elements["search"].value;*/
+						//userInput = frm.search.value;
+						//console.log(userInput);
+						userInput = document.getElementById('userinput').value;
+						console.log(userinput);
+					}
+				console.log(userInput);
+			////////////////Bar graph///////////////////////////////////////////
+			// this sets up the borders for the svg
+			var margin = {top: 200, right: 20, bottom: 30, left: 100},
+			width = 900 - margin.right - margin.left,
+			height = 600 - margin.top - margin.bottom;
+
+			//x scaling
+			var xScale = d3.scale.ordinal()
+				.rangeRoundBands([0,width], .1); 
+			//y scaling
+			var yScale = d3.scale.linear()
+				.range([height,0]);
+			//set up of xAxis
+			var xAxis = d3.svg.axis()
+				.scale(xScale)
+				.orient("bottom");
+			//set up of yAxis
+			var yAxis = d3.svg.axis()
+				.scale(yScale)
+				.orient("left")
+			//start of the svg graph
+			var svg =d3.select("body").append("div")
+				.style("width", "50%")
+				.append("svg")
+				.attr("width", width + margin.left + margin.right)
+				.attr("height", height + margin.top + margin.bottom)
+				.attr("class", "graph")
+				.append("g")
+					.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+			//////////pie chart/////////////////////////////////////////////////////////
+			var piewidth = 960,
+				pieheight = 500,
+				radius = Math.min(piewidth, pieheight) / 2;
+
+			var color = d3.scale.ordinal()
+				.range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+
+			var arc = d3.svg.arc()
+				.outerRadius(radius - 10)
+				.innerRadius(0);
+
+			var pie = d3.layout.pie()
+				//.sort(null)
+				.value(function(d) {return d.count; });
+
+			var piesvg =  d3.select("body").append("div")
+				.append("svg")
+				.attr("width", piewidth)
+				.attr("height", pieheight)
+				.append("g")
+				.attr("transform", "translate(" + piewidth /2 + "," + pieheight / 2 + ")");
+
+			/*var catamount = [];
+			catagory.forEach(function(d){
+				if(function(data) == d)
+			})*/
+
+//////////////////////////////////////////////////////////////////////////
+			//////////collecting data for graph///////////////////////////////////////////
+			d3.csv("regwords100.csv", function(error, data){
+				//collecting filtered data
+				var ranks = data.filter(byRank);
+
+				var conj = data.filter(byConjunction);
+				var adverb = data.filter(byAdverb);
+				var verb = data.filter(byVerb);
+				var determiner = data.filter(byDeterminer);
+				var pronoun = data.filter(byNoun);
+				var adjective = data.filter(byAdjective);
+				var noun = data.filter(byNoun);
+				var preposition = data.filter(byPreposition);
+				var infinitivemarker = data.filter(byInfinitiveMaker);
+				var modal = data.filter(byModal);
+
+				//part of speech and length array
+				var catagory = 
+				[
+					{"speechpart":"v", "count":verb.length}, {"speechpart":"det", "count":determiner.length}, {"speechpart":"prep", "count":preposition.length}, {"speechpart":"infinitive-marker", "count":infinitivemarker.length}, {"speechpart":"pron", "count":pronoun.length}, {"speechpart":"adv", "count":adverb.length}, {"speechpart":"conj", "count":conj.length}, {"speechpart":"modal", "count":modal.length}, {"speechpart":"n", "count":noun.length}, {"speechpart":"a", "count":adjective.length}
+				];
+				/////////////////////Pie Chart cont./////////////////////////////////////
+				var arcs = piesvg.selectAll(".arc")
+					.data(pie(catagory))
+					.enter().append("g")
+					.attr("class", "arc");
+
+				arcs.append("path")
+				.attr("d", arc)
+				.style("fill", function(d) {return color(d.data.speechpart); });
+
+				arcs.append("text")
+					.attr("transform", function(d) {return "translate(" + arc.centroid(d) + ")"; })
+					//.attr("dy", ".35em")
+					.style("text-anchor", "middle")
+					.text(function(d) {return d.data.speechpart; });
+
+				console.log(data);
+
+				console.log(catagory);
+				/*for(var a in data){
+					for(var b in catagory){
+						if(a.speechpart == b.speechpart)
+					}
+				}*/
+
+				//////////////////////top 20 table/////////////////////////////
+
+				//table headers
+				var tablecols = ["rank", "word"];
+				table = d3.select("body").append("div")
+					.style("width", "50%")
+					.style("float", "left")
+					.append("table")
+					.style("width", "18%")
+					.attr("align", "center")
+					.attr("class", "table"),
+				thead = table.append("thead"),
+				tbody = table.append("tbody");
+				//sets up header for table
+				thead.append("tr")
+					.selectAll("th")
+					.data(tablecols)
+					.enter()
+					.append("th")
+					.text(function(tablecol) {return tablecol;});
+				//adds rows for top 20
+				var rows = tbody.selectAll("tr")
+					.data(ranks)
+					.enter()
+					.append("tr");
+				//input for individual cells
+				var cells = rows.selectAll("td")
+					.data(function(row){
+						return tablecols.map(function(tablecol){
+							return {tablecol: tablecol, value: row[tablecol]};
+						});
+					})
+					.enter()
+					.append("td")
+					//.attr("style", "font-family: Courier")
+					.html(function(d) {return d.value; });
+				////////////////////Bar graph cont.////////////////////////
+				xScale.domain(ranks.map(function(d) {return d.word; }));
+				yScale.domain([0, d3.max(ranks, function(d) { return (d.frequency)*1.2; })])
+
+				svg.append("g")
+					.attr("class", "x axsis")
+					.attr("transform", function(d,i) {return "translate(0," + height + ")";})
+					.call(xAxis);
+
+				svg.append("g")
+					.attr("class", "y axis")
+					.call(yAxis);
+
+				svg.selectAll(".bar")
+					.data(ranks)
+					.enter().append("rect")
+					.attr("class", "bar")
+					.attr("x", function(d) {return xScale(d.word); })
+					.attr("y", function(d) {return yScale(d.frequency); })
+					.attr("width", xScale.rangeBand())
+					.attr("height", function(d) {return height - yScale(d.frequency); });
+					//.style("fill", "steelblue")
+
+					d3.selectAll("rect").transition().duration(2000).style("fill", "steelblue");
+
+					//the problem is that it recognizes the other to as the same to so it exist. I just don't know how to differ them.
+			})
+
+			//organizes data by verb
+			function byVerb(element){
+				return element.speechpart == "v";
+			}
+			//organizes by rank
+			function byRank(element){
+				if(element.rank >= 1 && element.rank <= 20)
+				{
+					return element.word;
+				}
+			}
+			function byAdjective(element){
+				return element.speechpart == "a";
+			}
+			function byAdverb(element){
+				return element.speechpart == "adv";
+			}
+			function byPronoun(element){
+				return element.speechpart == "pron";
+			}
+			function byNoun(element){
+				return element.speechpart == "n";
+			}
+			function byConjunction(element){
+				return element.speechpart == "conj";
+			}
+			function byDeterminer(element){
+				return element.speechpart == "det";
+			}
+			function byPreposition(element){
+				return element.speechpart == "prep";
+			}
+			function byModal(element){
+				return element.speechpart == "modal";
+			}
+			function byInfinitiveMaker(element){
+				return element.speechpart == "infinitive-marker";
+			}
+
+		</script>
+	</body>
+</html>
