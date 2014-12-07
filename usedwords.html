@@ -42,7 +42,7 @@
 
 		<form id="frm1" onsubmit="return false;">
 			<input type="text" id="userinput" />
-			<input type="submit" onclick="myFunction()" value="Search" />
+			<input type="submit" onclick="myFunction()"/><!-- value="Search" /-->
 		</form>
 
 		<script type="text/javascript" src="d3/d3.min.js"></script>
@@ -75,9 +75,11 @@
 						userInput  = y.elements["search"].value;*/
 						//userInput = frm.search.value;
 						//console.log(userInput);
-						userInput = document.getElementById('userinput').value;
-						console.log(userinput);
+						userInput = document.getElementById('userinput');
+						userInput = userinput.value;
+						console.log(userInput);
 					}
+<<<<<<< HEAD
 				console.log(userInput);
 
 			var tooltip = d3.select("body").append('div')
@@ -85,6 +87,8 @@
 				.style('padding', '0 10px')
 				.style('background', 'white')
 				.style('opacity', 0);
+=======
+>>>>>>> b6176ef4f276e4e1a502ec621190cbb5d51aa6b0
 			////////////////Bar graph///////////////////////////////////////////
 			// this sets up the borders for the svg
 			var margin = {top: 200, right: 20, bottom: 30, left: 100},
