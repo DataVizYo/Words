@@ -46,6 +46,7 @@
 		</form>
 
 		<script type="text/javascript" src="d3/d3.min.js"></script>
+		<script src="http://d3js.org/d3.v3.min.js"></script>
 
 		<script>
 			/////////////////////////User input//////////////////////////
@@ -77,18 +78,13 @@
 						//console.log(userInput);
 						userInput = document.getElementById('userinput');
 						userInput = userinput.value;
-						console.log(userInput);
+						//console.log(userInput);
+						return userInput;
 					}
-<<<<<<< HEAD
+
+				console.log(myFunction());
 				console.log(userInput);
 
-			var tooltip = d3.select("body").append('div')
-				.style('position', 'absolute')
-				.style('padding', '0 10px')
-				.style('background', 'white')
-				.style('opacity', 0);
-=======
->>>>>>> b6176ef4f276e4e1a502ec621190cbb5d51aa6b0
 			////////////////Bar graph///////////////////////////////////////////
 			// this sets up the borders for the svg
 			var margin = {top: 200, right: 20, bottom: 30, left: 100},
@@ -132,15 +128,22 @@
 				.innerRadius(0);
 
 			var pie = d3.layout.pie()
-				//.sort(null)
+				.sort(null)
 				.value(function(d) {return d.count; });
 
 			var piesvg =  d3.select("body").append("div")
+				.attr("id","piechartdiv")
 				.append("svg")
 				.attr("width", piewidth)
 				.attr("height", pieheight)
 				.append("g")
 				.attr("transform", "translate(" + piewidth /2 + "," + pieheight / 2 + ")");
+
+			var pietooltip = d3.select("#piechartdiv").append('div')
+				.style('position', 'absolute')
+				.style('padding', '0 10px')
+				.style('background', 'white')
+				.style('opacity', 0);
 
 			/*var catamount = [];
 			catagory.forEach(function(d){
@@ -151,8 +154,8 @@
 			//////////collecting data for graph///////////////////////////////////////////
 			d3.csv("regwords100.csv", function(error, data){
 				//collecting filtered data
+				var origdata = data;
 				var ranks = data.filter(byRank);
-
 				var conj = data.filter(byConjunction);
 				var adverb = data.filter(byAdverb);
 				var verb = data.filter(byVerb);
@@ -178,32 +181,44 @@
 				arcs.append("path")
 				.attr("d", arc)
 				.style("fill", function(d) {return color(d.data.speechpart); })
-				.on("mouseover", function(){
-						console.log("in the thing")
-						tooltip.transition()
+				.on("mouseover", function(d){
+						//console.log("in the thing")
+						pietooltip.transition()
 							.style('opacity', .9);
 
-						tooltip.html(d.data.speechpart)
+						pietooltip.html(d.data.speechpart)
 							.style("left", (d3.event.pageX + 20) + "px")
-							.style("top", (d3.event.pageY) + "px");
+							.style("top", (d3.event.pageY) + "px")
 
 						d3.select(this)
-							.style("stroke-width", "7.0px");	
+							.style("fill", "red");
+
+						//console.log("speech part " + d.data.speechpart);
+						if(d.data.speechpart == "v")
+						{
+							console.log("I'm also here");
+							//whichData(ranks);
+							data = verb;
+							table = d3.selectAll("table")
+								.data(data);
+							table.exit().remove();
+							console.log(data);
+						}	
 				})
 				.on("mouseout", function(d){
 					d3.select(this)
-						.style("stroke-width", "1.5px");
+						.style("fill", function(d) {return color(d.data.speechpart); })
 				});
 
-				arcs.append("text")
+				/*arcs.append("text")
 					.attr("transform", function(d) {return "translate(" + arc.centroid(d) + ")"; })
 					//.attr("dy", ".35em")
 					.style("text-anchor", "middle")
-					.text(function(d) {return d.data.speechpart; });
+					.text(function(d) {return d.data.speechpart; });*/
 
-				console.log(data);
+				//console.log("Old " + data);
 
-				console.log(catagory);
+				//console.log(catagory);
 				/*for(var a in data){
 					for(var b in catagory){
 						if(a.speechpart == b.speechpart)
@@ -214,38 +229,8 @@
 
 				//table headers
 				var tablecols = ["rank", "word"];
-				table = d3.select("body").append("div")
-					.style("width", "50%")
-					.style("float", "left")
-					.append("table")
-					.style("width", "10%")
-					.attr("align", "center")
-					.attr("class", "table"),
-				thead = table.append("thead"),
-				tbody = table.append("tbody");
-				//sets up header for table
-				thead.append("tr")
-					.selectAll("th")
-					.data(tablecols)
-					.enter()
-					.append("th")
-					.text(function(tablecol) {return tablecol;});
-				//adds rows for top 20
-				var rows = tbody.selectAll("tr")
-					.data(ranks)
-					.enter()
-					.append("tr");
-				//input for individual cells
-				var cells = rows.selectAll("td")
-					.data(function(row){
-						return tablecols.map(function(tablecol){
-							return {tablecol: tablecol, value: row[tablecol]};
-						});
-					})
-					.enter()
-					.append("td")
-					//.attr("style", "font-family: Courier")
-					.html(function(d) {return d.value; });
+				createTable(tablecols, data);
+				
 				////////////////////Bar graph cont.////////////////////////
 				xScale.domain(ranks.map(function(d) {return d.word; }));
 				yScale.domain([0, d3.max(ranks, function(d) { return (d.frequency)*1.2; })])
@@ -311,6 +296,42 @@
 			}
 			function byInfinitiveMaker(element){
 				return element.speechpart == "infinitive-marker";
+			}
+			function createTable(headers, data){
+				table = d3.select("body").append("div")
+					.style("width", "50%")
+					.style("float", "left")
+					.append("table")
+					.style("width", "40%")
+					.attr("align", "center")
+					.attr("class", "table"),
+				thead = table.append("thead"),
+				tbody = table.append("tbody");
+				//sets up header for table
+				thead.append("tr")
+					.selectAll("th")
+					.data(headers)
+					.enter()
+					.append("th")
+					.text(function(headers) {return headers;});
+				//adds rows for top 20
+				var rows = tbody.selectAll("tr")
+					.data(data)
+					.enter()
+					.append("tr");
+				//input for individual cells
+				var cells = rows.selectAll("td")
+					.data(function(row){
+						return headers.map(function(headers){
+							return {headers: headers, value: row[headers]};
+						});
+					})
+					.enter()
+					.append("td")
+					//.attr("style", "font-family: Courier")
+					.html(function(d) {return d.value; });
+
+				return table;
 			}
 
 		</script>
