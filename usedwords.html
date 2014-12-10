@@ -144,14 +144,17 @@
 				.style('padding', '0 10px')
 				.style('background', 'white')
 				.style('opacity', 0);
-
-			/*var catamount = [];
-			catagory.forEach(function(d){
-				if(function(data) == d)
-			})*/
-
+			/////////Creation of dive for table////////////////////////////////////////
+			table = d3.select("body").append("div")
+					.style("width", "50%")
+					.style("float", "left");
+			////////////////////////////////////////////
+			render();
+			//setInterval(render,5000);
 //////////////////////////////////////////////////////////////////////////
 			//////////collecting data for graph///////////////////////////////////////////
+
+			function render(){
 			d3.csv("regwords100.csv", function(error, data){
 				//collecting filtered data
 				var origdata = data;
@@ -166,6 +169,7 @@
 				var preposition = data.filter(byPreposition);
 				var infinitivemarker = data.filter(byInfinitiveMaker);
 				var modal = data.filter(byModal);
+				var tempdata = data;
 
 				//part of speech and length array
 				var catagory = 
@@ -198,11 +202,11 @@
 						{
 							console.log("I'm also here");
 							//whichData(ranks);
-							data = verb;
-							table = d3.selectAll("table")
+							tempdata = verb;
+							/*table = d3.selectAll("table")
 								.data(data);
-							table.exit().remove();
-							console.log(data);
+							table.exit().remove();*/
+							//console.log(data);
 						}	
 				})
 				.on("mouseout", function(d){
@@ -210,26 +214,12 @@
 						.style("fill", function(d) {return color(d.data.speechpart); })
 				});
 
-				/*arcs.append("text")
-					.attr("transform", function(d) {return "translate(" + arc.centroid(d) + ")"; })
-					//.attr("dy", ".35em")
-					.style("text-anchor", "middle")
-					.text(function(d) {return d.data.speechpart; });*/
-
-				//console.log("Old " + data);
-
-				//console.log(catagory);
-				/*for(var a in data){
-					for(var b in catagory){
-						if(a.speechpart == b.speechpart)
-					}
-				}*/
-
 				//////////////////////top 20 table/////////////////////////////
 
 				//table headers
 				var tablecols = ["rank", "word"];
-				createTable(tablecols, data);
+				console.log(tempdata);
+				createTable(tablecols, tempdata);
 				
 				////////////////////Bar graph cont.////////////////////////
 				xScale.domain(ranks.map(function(d) {return d.word; }));
@@ -257,7 +247,8 @@
 					d3.selectAll("rect").transition().duration(2000).style("fill", "steelblue");
 
 					//the problem is that it recognizes the other to as the same to so it exist. I just don't know how to differ them.
-			})
+			});
+			}
 
 			//organizes data by verb
 			function byVerb(element){
@@ -298,10 +289,9 @@
 				return element.speechpart == "infinitive-marker";
 			}
 			function createTable(headers, data){
-				table = d3.select("body").append("div")
-					.style("width", "50%")
-					.style("float", "left")
-					.append("table")
+				
+				d3.select("table").remove();
+				table.append("table")
 					.style("width", "40%")
 					.attr("align", "center")
 					.attr("class", "table"),
