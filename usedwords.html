@@ -149,105 +149,106 @@
 					.style("width", "50%")
 					.style("float", "left");
 			////////////////////////////////////////////
+			var verbs = false;
+			var norms = true;
 			render();
-			//setInterval(render,5000);
+			//setInterval(render,1);
 //////////////////////////////////////////////////////////////////////////
 			//////////collecting data for graph///////////////////////////////////////////
-
 			function render(){
-			d3.csv("regwords100.csv", function(error, data){
-				//collecting filtered data
-				var origdata = data;
-				var ranks = data.filter(byRank);
-				var conj = data.filter(byConjunction);
-				var adverb = data.filter(byAdverb);
-				var verb = data.filter(byVerb);
-				var determiner = data.filter(byDeterminer);
-				var pronoun = data.filter(byNoun);
-				var adjective = data.filter(byAdjective);
-				var noun = data.filter(byNoun);
-				var preposition = data.filter(byPreposition);
-				var infinitivemarker = data.filter(byInfinitiveMaker);
-				var modal = data.filter(byModal);
-				var tempdata = data;
+				d3.csv("regwords100.csv", function(error, data){
+					//collecting filtered data
+					var origdata = data;
+					//var ranks = data.filter(byRank);
+					var conj = data.filter(byConjunction);
+					var adverb = data.filter(byAdverb);
+					var verb = data.filter(byVerb);
+					var determiner = data.filter(byDeterminer);
+					var pronoun = data.filter(byNoun);
+					var adjective = data.filter(byAdjective);
+					var noun = data.filter(byNoun);
+					var preposition = data.filter(byPreposition);
+					var infinitivemarker = data.filter(byInfinitiveMaker);
+					var modal = data.filter(byModal);
+					var tempdata = data;
 
-				//part of speech and length array
-				var catagory = 
-				[
-					{"speechpart":"v", "count":verb.length}, {"speechpart":"det", "count":determiner.length}, {"speechpart":"prep", "count":preposition.length}, {"speechpart":"infinitive-marker", "count":infinitivemarker.length}, {"speechpart":"pron", "count":pronoun.length}, {"speechpart":"adv", "count":adverb.length}, {"speechpart":"conj", "count":conj.length}, {"speechpart":"modal", "count":modal.length}, {"speechpart":"n", "count":noun.length}, {"speechpart":"a", "count":adjective.length}
-				];
-				/////////////////////Pie Chart cont./////////////////////////////////////
-				var arcs = piesvg.selectAll(".arc")
-					.data(pie(catagory))
-					.enter().append("g")
-					.attr("class", "arc");
+					//part of speech and length array
+					var catagory = 
+					[
+						{"speechpart":"verb", "count":verb.length}, {"speechpart":"det", "count":determiner.length}, {"speechpart":"prep", "count":preposition.length}, {"speechpart":"infinitive-marker", "count":infinitivemarker.length}, {"speechpart":"pron", "count":pronoun.length}, {"speechpart":"adv", "count":adverb.length}, {"speechpart":"conj", "count":conj.length}, {"speechpart":"modal", "count":modal.length}, {"speechpart":"n", "count":noun.length}, {"speechpart":"a", "count":adjective.length}
+					];
+					/////////////////////Pie Chart cont.//////////////////////////////////
+					var arcs = piesvg.selectAll(".arc")
+						.data(pie(catagory))
+						.enter().append("g")
+						.attr("class", "arc");
 
-				arcs.append("path")
-				.attr("d", arc)
-				.style("fill", function(d) {return color(d.data.speechpart); })
-				.on("mouseover", function(d){
-						//console.log("in the thing")
-						pietooltip.transition()
-							.style('opacity', .9);
+					arcs.append("path")
+					.attr("d", arc)
+					.style("fill", function(d) {return color(d.data.speechpart); })
+					.on("mouseover", function(d){
+							//console.log("in the thing")
+							pietooltip.transition()
+								.style('opacity', .9);
 
-						pietooltip.html(d.data.speechpart)
-							.style("left", (d3.event.pageX + 20) + "px")
-							.style("top", (d3.event.pageY) + "px")
+							pietooltip.html(d.data.speechpart)
+								.style("left", (d3.event.pageX + 20) + "px")
+								.style("top", (d3.event.pageY) + "px")
 
+							d3.select(this)
+								.style("fill", "red");
+
+							//console.log("speech part " + d.data.speechpart);
+							if(d.data.speechpart == "verb")
+							{
+								chooseData("verb");
+							}	
+					})
+					.on("mouseout", function(d){
 						d3.select(this)
-							.style("fill", "red");
+							.style("fill", function(d) {return color(d.data.speechpart); })
+					});
 
-						//console.log("speech part " + d.data.speechpart);
-						if(d.data.speechpart == "v")
-						{
-							console.log("I'm also here");
-							//whichData(ranks);
-							tempdata = verb;
-							/*table = d3.selectAll("table")
-								.data(data);
-							table.exit().remove();*/
-							//console.log(data);
-						}	
-				})
-				.on("mouseout", function(d){
-					d3.select(this)
-						.style("fill", function(d) {return color(d.data.speechpart); })
+					//////////////////////top 20 table/////////////////////////////
+
+					//table headers
+					var tablecols = ["rank", "word"];
+					//console.log(tempdata);
+					createTable(tablecols, tempdata);
+					
+					////////////////////Bar graph cont.////////////////////////
+					//console.log(getData(data));
+					svg.selectAll(".yaxis").remove();
+					svg.selectAll(".xaxis").remove();
+					svg.selectAll(".bar").remove();
+					//var newdata = getData();
+					xScale.domain(getData(data).map(function(d) {return d.word; }));
+					yScale.domain([0, d3.max(getData(data), function(d) { return (d.frequency)*1.2; })])
+
+					svg.append("g")
+						.attr("class", "xaxis")
+						.attr("transform", function(d,i) {return "translate(0," + height + ")";})
+						.call(xAxis);
+
+					svg.append("g")
+						.attr("class", "yaxis")
+						.call(yAxis);
+
+					svg.selectAll(".bar")
+						.data(getData(data))
+						.enter().append("rect")
+						.attr("class", "bar")
+						.attr("x", function(d) {return xScale(d.word); })
+						.attr("y", function(d) {return yScale(d.frequency); })
+						.attr("width", xScale.rangeBand())
+						.attr("height", function(d) {return height - yScale(d.frequency); })
+						.style("fill", "steelblue");
+						//.style("fill", "steelblue")
+
+						/*d3.selectAll("rect").transition().duration(2000).style("fill", "steelblue");*/
+
+						//the problem is that it recognizes the other to as the same to so it exist. I just don't know how to differ them.
 				});
-
-				//////////////////////top 20 table/////////////////////////////
-
-				//table headers
-				var tablecols = ["rank", "word"];
-				console.log(tempdata);
-				createTable(tablecols, tempdata);
-				
-				////////////////////Bar graph cont.////////////////////////
-				xScale.domain(ranks.map(function(d) {return d.word; }));
-				yScale.domain([0, d3.max(ranks, function(d) { return (d.frequency)*1.2; })])
-
-				svg.append("g")
-					.attr("class", "x axsis")
-					.attr("transform", function(d,i) {return "translate(0," + height + ")";})
-					.call(xAxis);
-
-				svg.append("g")
-					.attr("class", "y axis")
-					.call(yAxis);
-
-				svg.selectAll(".bar")
-					.data(ranks)
-					.enter().append("rect")
-					.attr("class", "bar")
-					.attr("x", function(d) {return xScale(d.word); })
-					.attr("y", function(d) {return yScale(d.frequency); })
-					.attr("width", xScale.rangeBand())
-					.attr("height", function(d) {return height - yScale(d.frequency); });
-					//.style("fill", "steelblue")
-
-					d3.selectAll("rect").transition().duration(2000).style("fill", "steelblue");
-
-					//the problem is that it recognizes the other to as the same to so it exist. I just don't know how to differ them.
-			});
 			}
 
 			//organizes data by verb
@@ -288,9 +289,34 @@
 			function byInfinitiveMaker(element){
 				return element.speechpart == "infinitive-marker";
 			}
+			//determines which data should be chosen`
+			function chooseData(word){
+
+				if(word == "verb")
+				{
+					verbs = true;
+					norms = false;
+				}
+				else if(word == "norms")
+				{
+					norms = true;
+					verbs = false;
+				}
+			}
+			//return data
+			function getData(data){
+				if(verbs)
+				{
+					return data.filter(byVerb);
+				}
+				else if(norms){
+					return data;
+				}
+			}
+			//Creates table
 			function createTable(headers, data){
 				
-				d3.select("table").remove();
+				table.select("table").remove();
 				table.append("table")
 					.style("width", "40%")
 					.attr("align", "center")
