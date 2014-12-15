@@ -40,10 +40,11 @@
 	</head>
 	<body>
 
-		<form id="frm1" onsubmit="return false;">
+		<!--<form id="frm1" onsubmit="return false;">
 			<input type="text" id="userinput" />
-			<input type="submit" onclick="myFunction()"/><!-- value="Search" /-->
-		</form>
+			<input type="submit" onclick="myFunction()"/>
+		</form>-->
+		<h1 align="center">Social Words vs. British National Corpus</h1>
 
 		<script type="text/javascript" src="d3/d3.min.js"></script>
 		<script src="http://d3js.org/d3.v3.min.js"></script>
@@ -70,26 +71,26 @@
 				-->
 
 			//var userInput = document.getElementById("search").value;
-			var userInput = "";
+			/*var userInput = "";
 			function myFunction() {
 						/*var y = document.getElementById("form");
 						userInput  = y.elements["search"].value;*/
 						//userInput = frm.search.value;
 						//console.log(userInput);
-						userInput = document.getElementById('userinput');
+						/*userInput = document.getElementById('userinput');
 						userInput = userinput.value;
 						//console.log(userInput);
 						return userInput;
 					}
 
 				console.log(myFunction());
-				console.log(userInput);
+				console.log(userInput);*/
 
 			////////////////Bar graph///////////////////////////////////////////
 			// this sets up the borders for the svg
-			var margin = {top: 200, right: 20, bottom: 30, left: 100},
-			width = 900 - margin.right - margin.left,
-			height = 600 - margin.top - margin.bottom;
+			var margin = {top: 10, right: 0, bottom: 30, left: 75},
+			width = 1550 - margin.right - margin.left,
+			height = 400 - margin.top - margin.bottom;
 
 			//x scaling
 			var xScale = d3.scale.ordinal()
@@ -104,7 +105,7 @@
 			//set up of yAxis
 			var yAxis = d3.svg.axis()
 				.scale(yScale)
-				.orient("left")
+				.orient("left");
 			//start of the svg graph
 			var svg =d3.select("body").append("div")
 				.style("width", "50%")
@@ -116,12 +117,12 @@
 					.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 			//////////pie chart/////////////////////////////////////////////////////////
-			var piewidth = 960,
-				pieheight = 500,
+			var piewidth = 300,
+				pieheight = 300,
 				radius = Math.min(piewidth, pieheight) / 2;
 
 			var color = d3.scale.ordinal()
-				.range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+				.range(["#004913", "#E8AC0C", "#FF5CDB", "#190CE8", "#0DFF9D", "#0C93FF", "#FFEC01", "#01E836", "#9301E8", "#FF5A3B"]);
 
 			var arc = d3.svg.arc()
 				.outerRadius(radius - 10)
@@ -129,54 +130,109 @@
 
 			var pie = d3.layout.pie()
 				.sort(null)
-				.value(function(d) {return d.count; });
+				.value(function(d) {console.log(d.count); return d.count; });
 
 			var piesvg =  d3.select("body").append("div")
 				.attr("id","piechartdiv")
 				.append("svg")
 				.attr("width", piewidth)
 				.attr("height", pieheight)
+				.style("display", "block")
+				.style("margin", "auto")
 				.append("g")
 				.attr("transform", "translate(" + piewidth /2 + "," + pieheight / 2 + ")");
 
 			var pietooltip = d3.select("#piechartdiv").append('div')
+				.attr("class", "piett")
 				.style('position', 'absolute')
-				.style('padding', '0 10px')
+				.style('padding', '0px 5px')
 				.style('background', 'white')
 				.style('opacity', 0);
 			/////////Creation of dive for table////////////////////////////////////////
-			table = d3.select("body").append("div")
+			/*table = d3.select("body").append("div")
 					.style("width", "50%")
-					.style("float", "left");
+					.style("float", "left");*/
 			////////////////////////////////////////////
 			var verbs = false;
+			var dets = false;
+			var conjs = false;
+			var modals = false;
+			var infms = false;
+			var preps = false;
+			var nouns = false;
+			var adjs = false;
+			var prons = false;
+			var advs = false;
 			var norms = true;
+			var cons = false;
+			var spells = false;
+			var inters = false;
+			var emojis = false;
+			var currentMode = "norms";
+			var hasChanged = true;
+			var special = [];
+			var goddata = [];
 			render();
-			//setInterval(render,1);
+			/*if(hasChanged)
+			{
+				setInterval(render,1);
+			}*/
 //////////////////////////////////////////////////////////////////////////
 			//////////collecting data for graph///////////////////////////////////////////
 			function render(){
+				d3.csv("socialmediawords100.csv", function(error, data2){
 				d3.csv("regwords100.csv", function(error, data){
 					//collecting filtered data
 					var origdata = data;
+					var origdata2 = data2;
 					//var ranks = data.filter(byRank);
+					//console.log(data);
+					data = data.concat(data2);
+					var sorted = sort(data);
+					/*for(var i = 0; i < data.length; i++)
+					{
+						delete data[i];
+					}*/
+					//data = data.concat(sorted);
+					//console.log(sorted);
+					//console.log(data);
 					var conj = data.filter(byConjunction);
 					var adverb = data.filter(byAdverb);
 					var verb = data.filter(byVerb);
 					var determiner = data.filter(byDeterminer);
-					var pronoun = data.filter(byNoun);
+					var pronoun = data.filter(byPronoun);
 					var adjective = data.filter(byAdjective);
 					var noun = data.filter(byNoun);
 					var preposition = data.filter(byPreposition);
 					var infinitivemarker = data.filter(byInfinitiveMaker);
 					var modal = data.filter(byModal);
-					var tempdata = data;
+					var contraction = data.filter(byContraction);
+					var spelling = data.filter(bySpelling);
+					var interjection = data.filter(byInterjection);
+					var emoji = data.filter(byEmoji);
+					//var tempdata = data;
+					//change this when we use the flexible data
+					var stacked = getData(data);
+					var stackedcounter = 0;
+					for(x in origdata2)
+					{
+						for(y in origdata)
+						{
+							if(origdata2[x].word == origdata[y].word)
+							{
+								special.push(origdata2[x]);
+							}
+						}
+						delete origdata2[x];
+					}
+					//console.log(special);
 
 					//part of speech and length array
 					var catagory = 
 					[
-						{"speechpart":"verb", "count":verb.length}, {"speechpart":"det", "count":determiner.length}, {"speechpart":"prep", "count":preposition.length}, {"speechpart":"infinitive-marker", "count":infinitivemarker.length}, {"speechpart":"pron", "count":pronoun.length}, {"speechpart":"adv", "count":adverb.length}, {"speechpart":"conj", "count":conj.length}, {"speechpart":"modal", "count":modal.length}, {"speechpart":"n", "count":noun.length}, {"speechpart":"a", "count":adjective.length}
+						{"speechpart":"verb", "count":verb.length, "color":"#004913"}, {"speechpart":"determiner", "count":determiner.length, "color":"#E8AC0C"}, {"speechpart":"preposition", "count":preposition.length, "color":"#FF5CDB"}, {"speechpart":"infinitive-marker", "count":infinitivemarker.length, "color":"#190CE8"}, {"speechpart":"pronoun", "count":pronoun.length, "color":"#0DFF9D"}, {"speechpart":"adverb", "count":adverb.length, "color":"#0C93FF"}, {"speechpart":"conjunction", "count":conj.length, "color":"#FFEC01"}, {"speechpart":"modal", "count":modal.length, "color":"#01E836"}, {"speechpart":"noun", "count":noun.length, "color":"#9301E8"}, {"speechpart":"adjective", "count":adjective.length, "color":"#FF5A3B"}, {"speechpart":"contraction", "count":contraction.length, "color":"#990033"}, {"speechpart":"spelling", "count":spelling.length, "color":"#99CC00"}, {"speechpart":"interjection", "count":interjection.length, "color":"#660066"}, {"speechpart":"emoji", "count":emoji.length, "color":"#FF0066"}
 					];
+					//console.log(catagory);
 					/////////////////////Pie Chart cont.//////////////////////////////////
 					var arcs = piesvg.selectAll(".arc")
 						.data(pie(catagory))
@@ -185,14 +241,14 @@
 
 					arcs.append("path")
 					.attr("d", arc)
-					.style("fill", function(d) {return color(d.data.speechpart); })
+					.style("fill", function(d) {return d.data.color; })
 					.on("mouseover", function(d){
-							//console.log("in the thing")
+							setInterval(render,1);
 							pietooltip.transition()
 								.style('opacity', .9);
 
 							pietooltip.html(d.data.speechpart)
-								.style("left", (d3.event.pageX + 20) + "px")
+								.style("left", (d3.event.pageX) + "px")
 								.style("top", (d3.event.pageY) + "px")
 
 							d3.select(this)
@@ -203,18 +259,70 @@
 							{
 								chooseData("verb");
 							}	
+							if(d.data.speechpart == "determiner")
+							{
+								chooseData("det");
+							}
+							if(d.data.speechpart == "conjunction")
+							{
+								chooseData("conj");
+							}
+							if(d.data.speechpart == "adverb")
+							{
+								chooseData("adv");
+							}
+							if(d.data.speechpart == "noun")
+							{
+								chooseData("noun");
+							}	
+							if(d.data.speechpart == "preposition")
+							{
+								chooseData("prep");
+							}	
+							if(d.data.speechpart == "infinitive-marker")
+							{
+								chooseData("infm");
+							}	
+							if(d.data.speechpart == "modal")
+							{
+								chooseData("modal");
+							}
+							if(d.data.speechpart == "adjective")
+							{
+								chooseData("adj");
+							}	
+							if(d.data.speechpart == "pronoun")
+							{
+								chooseData("pron");
+							}	
+							if(d.data.speechpart == "contraction")
+							{
+								chooseData("con");
+							}	
+							if(d.data.speechpart == "spelling")
+							{
+								chooseData("spell");
+							}	
+							if(d.data.speechpart == "interjection")
+							{
+								chooseData("inter");
+							}	
+							if(d.data.speechpart == "emoji")
+							{
+								chooseData("emoji");
+							}									
 					})
 					.on("mouseout", function(d){
 						d3.select(this)
-							.style("fill", function(d) {return color(d.data.speechpart); })
+							.style("fill", function(d) {return d.data.color; })
 					});
 
 					//////////////////////top 20 table/////////////////////////////
 
 					//table headers
-					var tablecols = ["rank", "word"];
+					/*var tablecols = ["rank", "word"];
 					//console.log(tempdata);
-					createTable(tablecols, tempdata);
+					createTable(tablecols, tempdata);*/
 					
 					////////////////////Bar graph cont.////////////////////////
 					//console.log(getData(data));
@@ -222,13 +330,30 @@
 					svg.selectAll(".xaxis").remove();
 					svg.selectAll(".bar").remove();
 					//var newdata = getData();
-					xScale.domain(getData(data).map(function(d) {return d.word; }));
+					xScale.domain(getData(data).map(function(d,i) {return d.word;}));
 					yScale.domain([0, d3.max(getData(data), function(d) { return (d.frequency)*1.2; })])
 
 					svg.append("g")
 						.attr("class", "xaxis")
 						.attr("transform", function(d,i) {return "translate(0," + height + ")";})
-						.call(xAxis);
+						.call(xAxis)
+						.selectAll("text")
+						.style("text-anchor", "end")
+						.attr("font-size", function(d) {
+							if(getData(data).length > 10)
+							{
+								return "0px";
+							}
+							else
+							{
+								return "15px";
+							}
+						});
+						/*.attr("dx", "-.8em")
+						.attr("dy", ".15em")
+						.attr("transform", function(d) {
+							return "rotate(-90)";
+						});*/
 
 					svg.append("g")
 						.attr("class", "yaxis")
@@ -238,16 +363,85 @@
 						.data(getData(data))
 						.enter().append("rect")
 						.attr("class", "bar")
-						.attr("x", function(d) {return xScale(d.word); })
-						.attr("y", function(d) {return yScale(d.frequency); })
-						.attr("width", xScale.rangeBand())
+						.attr("x", function(d,i) {
+							if(xScale.rangeBand() > 67)
+							{
+								return (xScale(d.word) + ((xScale.rangeBand()) - 67)/2 ) 
+							}
+							else {return (xScale(d.word)); }
+						})
+						.attr("y", function(d) {
+							//return yScale(d.frequency); 
+							var temp = 0;
+							for(x in stacked)
+							{
+								if(d.word == stacked[x].word)
+								{
+									if(d.frequency != stacked[x].frequency)
+									{
+										temp = temp + parseInt(stacked[x].frequency);
+									}
+									else { temp = temp + 0; }
+								}
+								else { temp = temp + 0; }
+							}
+							temp = parseInt(d.frequency) + temp;
+							delete stacked[stackedcounter];
+							stackedcounter++;
+							return yScale(temp);
+						})
+						.attr("width", function(){
+							if(xScale.rangeBand() > 67){ return 67; }
+							else {return xScale.rangeBand(); }
+						})
 						.attr("height", function(d) {return height - yScale(d.frequency); })
-						.style("fill", "steelblue");
+						.style("fill", function(d) {
+							if(d.speechpart == "v") {return "#004913"; }
+							else if(d.speechpart == "det") {return "#E8AC0C"; }
+							else if(d.speechpart == "prep") {return "#FF5CDB"; }
+							else if(d.speechpart == "infinitive-marker") {return "#190CE8"; }
+							else if(d.speechpart == "pron") {return "#0DFF9D"; }
+							else if(d.speechpart == "adv") {return "#0C93FF"; }
+							else if(d.speechpart == "conj") {return "#FFEC01"; }
+							else if(d.speechpart == "modal") {return "#01E836"; }
+							else if(d.speechpart == "n") {return "#9301E8"; }
+							else if(d.speechpart == "a") {return "#FF5A3B"; }
+							else if(d.speechpart == "contraction") {return "#990033";}
+							else if(d.speechpart == "spelling") {return "#99CC00";}
+							else if(d.speechpart == "interjection") {return "#660066";}
+							else if(d.speechpart == "emoji") {return "#FF0066";}
+						 })
+						.on("mouseover", function(d){
+							//console.log("in the thing")
+							var tempdata = d;
+							pietooltip.transition()
+								.style('opacity', .9);
+
+							pietooltip.html(function(tempdata){
+								return ("<p>Word: " + d.word + "<p>Speech Part: " + d.speechpart + "<p>frequency: " + d.frequency);
+							})
+								.style("left", (d3.event.pageX + 20) + "px")
+								.style("top", (d3.event.pageY) + "px")
+
+							d3.select(".piett")
+								.style("background-color", function(tempdata){
+									if(d.ismedia == "yes")
+									{
+										return "yellow";
+									}
+									else {return "white";}
+								});
+							
+							/*pietooltip.html(d.word)
+								.style("left", (d3.event.pageX + 20) + "px")
+								.style("top", (d3.event.pageY) + "px");*/
+							});
 						//.style("fill", "steelblue")
 
 						/*d3.selectAll("rect").transition().duration(2000).style("fill", "steelblue");*/
 
 						//the problem is that it recognizes the other to as the same to so it exist. I just don't know how to differ them.
+				})
 				});
 			}
 
@@ -289,29 +483,329 @@
 			function byInfinitiveMaker(element){
 				return element.speechpart == "infinitive-marker";
 			}
+			function byContraction(element){
+				return element.speechpart == "contraction";
+			}
+			function bySpelling(element){
+				return element.speechpart == "spelling";
+			}
+			function byInterjection(element){
+				return element.speechpart == "interjection";
+			}
+			function byEmoji(element){
+				return element.speechpart == "emoji";
+			}
+			function sort(data){
+				if(data.length == 0) return [];
+				var left = [], right = [], pivot = data[0];
+				for(var i = 1; i < data.length; i++){
+					data[i] < pivot ? left.push(data[i]) : right.push(data[i]);
+				}
+				return sort(left).concat(pivot,sort(right));
+			}
 			//determines which data should be chosen`
 			function chooseData(word){
 
+				console.log(currentMode);
+				console.log(word);
+				if(currentMode == word)
+				{
+					console.log("here");
+					hasChanged = false;
+				}
+				else
+				{
+					hasChanged = true;
+					currentMode = word;
+				}
 				if(word == "verb")
 				{
 					verbs = true;
 					norms = false;
+					dets = false;
+					conjs = false;
+					modals = false;
+					infms = false;
+					preps = false;
+					nouns = false;
+					adjs = false;
+					prons = false;
+					advs = false;
+					cons = false;
+					spells = false;
+					inters = false;
+					emojis = false;
+				}
+				else if(word == "det")
+				{
+					verbs = false;
+					norms = false;
+					dets = true;
+					conjs = false;
+					modals = false;
+					infms = false;
+					preps = false;
+					nouns = false;
+					adjs = false;
+					prons = false;
+					advs = false;
+					cons = false;
+					spells = false;
+					inters = false;
+					emojis = false;
+				}
+				else if(word == "conj")
+				{
+					verbs = false;
+					norms = false;
+					dets = false;
+					conjs = true;
+					modals = false;
+					infms = false;
+					preps = false;
+					nouns = false;
+					adjs = false;
+					prons = false;
+					advs = false;
+					cons = false;
+					spells = false;
+					inters = false;
+					emojis = false;
+				}
+				else if(word == "modal")
+				{
+					verbs = false;
+					norms = false;
+					dets = false;
+					conjs = false;
+					modals = true;
+					infms = false;
+					preps = false;
+					nouns = false;
+					adjs = false;
+					prons = false;
+					advs = false;
+					cons = false;
+					spells = false;
+					inters = false;
+					emojis = false;
+				}
+				else if(word == "infm")
+				{
+					verbs = false;
+					norms = false;
+					dets = false;
+					conjs = false;
+					modals = false;
+					infms = true;
+					preps = false;
+					nouns = false;
+					adjs = false;
+					prons = false;
+					advs = false;
+					cons = false;
+					spells = false;
+					inters = false;
+					emojis = false;
+				}
+				else if(word == "prep")
+				{
+					verbs = false;
+					norms = false;
+					dets = false;
+					conjs = false;
+					modals = false;
+					infms = false;
+					preps = true;
+					nouns = false;
+					adjs = false;
+					prons = false;
+					advs = false;
+					cons = false;
+					spells = false;
+					inters = false;
+					emojis = false;
+				}
+				else if(word == "noun")
+				{
+					verbs = false;
+					norms = false;
+					dets = false;
+					conjs = false;
+					modals = false;
+					infms = false;
+					preps = false;
+					nouns = true;
+					adjs = false;
+					prons = false;
+					advs = false;
+					cons = false;
+					spells = false;
+					inters = false;
+					emojis = false;
+				}
+				else if(word == "adv")
+				{
+					verbs = false;
+					norms = false;
+					dets = false;
+					conjs = false;
+					modals = false;
+					infms = false;
+					preps = false;
+					nouns = false;
+					adjs = false;
+					prons = false;
+					advs = true;
+					cons = false;
+					spells = false;
+					inters = false;
+					emojis = false;
+				}
+				else if(word == "pron")
+				{
+					verbs = false;
+					norms = false;
+					dets = false;
+					conjs = false;
+					modals = false;
+					infms = false;
+					preps = false;
+					nouns = false;
+					adjs = false;
+					prons = true;
+					advs = false;
+					cons = false;
+					spells = false;
+					inters = false;
+					emojis = false;
+				}
+				else if(word == "adj")
+				{
+					verbs = false;
+					norms = false;
+					dets = false;
+					conjs = false;
+					modals = false;
+					infms = false;
+					preps = false;
+					nouns = false;
+					adjs = true;
+					prons = false;
+					advs = false;
+					cons = false;
+					spells = false;
+					inters = false;
+					emojis = false;
 				}
 				else if(word == "norms")
 				{
-					norms = true;
 					verbs = false;
+					norms = true;
+					dets = false;
+					conjs = false;
+					modals = false;
+					infms = false;
+					preps = false;
+					nouns = false;
+					adjs = false;
+					prons = false;
+					advs = false;
+					cons = false;
+					spells = false;
+					inters = false;
+					emojis = false;
+				}
+				else if(word == "con")
+				{
+					verbs = false;
+					norms = false;
+					dets = false;
+					conjs = false;
+					modals = false;
+					infms = false;
+					preps = false;
+					nouns = false;
+					adjs = false;
+					prons = false;
+					advs = false;
+					cons = true;
+					spells = false;
+					inters = false;
+					emojis = false;
+				}
+				else if(word == "spell")
+				{
+					verbs = false;
+					norms = false;
+					dets = false;
+					conjs = false;
+					modals = false;
+					infms = false;
+					preps = false;
+					nouns = false;
+					adjs = false;
+					prons = false;
+					advs = false;
+					cons = false;
+					spells = true;
+					inters = false;
+					emojis = false;
+				}
+				else if(word == "inter")
+				{
+					verbs = false;
+					norms = false;
+					dets = false;
+					conjs = false;
+					modals = false;
+					infms = false;
+					preps = false;
+					nouns = false;
+					adjs = false;
+					prons = false;
+					advs = false;
+					cons = false;
+					spells = false;
+					inters = true;
+					emojis = false;
+				}
+				else if(word == "emoji")
+				{
+					verbs = false;
+					norms = false;
+					dets = false;
+					conjs = false;
+					modals = false;
+					infms = false;
+					preps = false;
+					nouns = false;
+					adjs = false;
+					prons = false;
+					advs = false;
+					cons = false;
+					spells = false;
+					inters = false;
+					emojis = true;
 				}
 			}
 			//return data
 			function getData(data){
-				if(verbs)
-				{
-					return data.filter(byVerb);
-				}
-				else if(norms){
-					return data;
-				}
+				if(verbs){return data.filter(byVerb);}
+				else if(dets){return data.filter(byDeterminer);}
+				else if(conjs){return data.filter(byConjunction);}
+				else if(modals){return data.filter(byModal);}
+				else if(infms){return data.filter(byInfinitiveMaker);}
+				else if(preps){return data.filter(byPreposition);}
+				else if(nouns){return data.filter(byNoun);}
+				else if(adjs){return data.filter(byAdjective);}
+				else if(prons){return data.filter(byPronoun);}
+				else if(advs){return data.filter(byAdverb);}
+				else if(norms){ return data;}
+				else if(cons){return data.filter(byContraction);}
+				else if(spells){return data.filter(bySpelling);}
+				else if(inters){return data.filter(byInterjection);}
+				else if(emojis){return data.filter(byEmoji);}
 			}
 			//Creates table
 			function createTable(headers, data){
